@@ -1,0 +1,39 @@
+<html>
+    <head>
+        <title>Promises, Promises.</title>
+        <link rel="stylesheet" type="text/css" href="lib/prettify/prettify.css" />
+        <link rel="stylesheet" type="text/css" href="lib/prettify/sons-of-obsidian.css" />
+        <script type="text/javascript" src="lib/q.js"></script>
+        <script type="text/javascript" src="js/deferred.js"></script>
+        <script type="text/javascript" src="lib/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="lib/prettify/prettify.js"></script>
+        <script type="text/javascript" src="js/magic.js"></script>
+        <script type="text/javascript" src="js/toc.js"></script>
+    </head>
+    <body>
+        <ol id="toc"></ol>
+        <h3>Picking your Promise Poison</h3>
+        <h5>(or, "how Peter Piper Picked a Peck of Petulant Promise Poison")<h5>
+
+        <p>
+            The frameworks shown are by no means the only implementations of promises in
+            Javascript. They are just the two most popular and a peek at how it can be done, for
+            interest' sake
+        </p>
+        <p>Of course, the question arises: <i><b>How do I select the promise library to use?</b></i></p>
+        <p>Well, as with most tools, pick the one which is most convenient.</p>
+        <ul>
+            <li>If you're in a project with only jQuery, use $.Deferred. Just bear in mind you have to
+                catch exceptions and reject() with them, as need be.</li>
+            <li>If you're in a Node application, you probably want Q (or something similar). No point
+                bringing in the whole of jQuery for an environment where the DOM is often irrelevant.</li>
+            <li>If you're in an Angular application, I'd suggest using the inbuilt, slightly cut-down
+                version of Q that is provided with the service <code>$q</code>. The <code>$http</code>
+                service uses it anyway -- and I'd also suggest steering away from using the extended
+                <code>$http</code> methods (<code>fail</code> and <code>success</code>) as they just
+                introduce inconsistency and a potential for confusion</li>
+        </ul>
+        <p>Interestingly, these different promise frameworks play quite well with each other, as the
+            following example demonstrates</p>
+    </body>
+</html>

@@ -1,0 +1,63 @@
+<html>
+    <head>
+        <title>Promises, Promises.</title>
+        <link rel="stylesheet" type="text/css" href="lib/prettify/prettify.css" />
+        <link rel="stylesheet" type="text/css" href="lib/prettify/sons-of-obsidian.css" />
+        <script type="text/javascript" src="lib/q.js"></script>
+        <script type="text/javascript" src="js/deferred.js"></script>
+        <script type="text/javascript" src="lib/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="lib/prettify/prettify.js"></script>
+        <script type="text/javascript" src="js/magic.js"></script>
+        <script type="text/javascript" src="js/toc.js"></script>
+    </head>
+    <body>
+        <ol id="toc"></ol>
+        <h3>Handling rejection</h3>
+        <p>Prior examples have focused mainly on successful outcomes. What if you'd like to
+            signal some kind of failure?</p>
+        <p>It's quite simple really:</p>
+    <pre>
+var d = $.Deferred();
+d.promise().then(function() {
+    log("I succeeded");
+}).fail(function() {
+    log("I failed");
+});
+if (confirm("Should I fail?")) {
+    d.reject();
+} else {
+    d.resolve();
+}
+    </pre>
+    <p>Simple as that.</p>
+    <p>You can also query the state of a jQuery deferred object with the methods:</p>
+    <pre>
+var d = $.Deferred();
+function logStuff(deferred) {
+    log("state: " + deferred.state()); // raw name of state
+}
+logStuff(d);
+d.resolve();
+logStuff(d);
+    </pre>
+    <p>jQuery's deferred object also has the ability to perform notifications for progress:</p>
+    <pre>
+var d = $.Deferred();
+d.promise().progress(function(data) {
+    log(data.message);
+}).then(function(data) {
+    log(data.message);
+});
+window.setTimeout(function() {
+    d.notify({message: "30%"});
+}, 1000);
+window.setTimeout(function() {
+    d.notify({message: "60%"});
+}, 2000);
+window.setTimeout(function() {
+    d.notify({message: "100%"});
+    d.resolve({message: "the end"});
+}, 3000);
+    </pre>
+    </body>
+</html>

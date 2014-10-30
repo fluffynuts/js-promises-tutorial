@@ -1,0 +1,89 @@
+<html>
+    <head>
+        <title>Promises, Promises.</title>
+        <link rel="stylesheet" type="text/css" href="lib/prettify/prettify.css" />
+        <link rel="stylesheet" type="text/css" href="lib/prettify/sons-of-obsidian.css" />
+        <script type="text/javascript" src="lib/q.js"></script>
+        <script type="text/javascript" src="js/deferred.js"></script>
+        <script type="text/javascript" src="lib/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="lib/prettify/prettify.js"></script>
+        <script type="text/javascript" src="js/magic.js"></script>
+        <script type="text/javascript" src="js/toc.js"></script>
+    </head>
+    <body>
+        <ol id="toc"></ol>
+        <h3>Why use promises?</h3>
+        <p>Promises form the backbone of async Javascript programming. You may have
+            already been using them without even knowing:</p>
+        <pre>
+$.ajax({url: 'foo.json'}).then(function(data) {
+    log('time to do something awesome for: ' + data.id);
+}).fail(function() {
+    log('sad trumpet sounds');
+});
+        </pre>
+        <p>
+            The above is, of course, a super-trivial ajax call via jQuery. Long ago and far away, you
+            would have called this like so:
+        </p>
+        <pre>
+$.ajax({
+    url: 'foo.json', 
+    success: function(data) {
+        log('time to do something awesome for: ' + data.id);
+    }, 
+    error: function(data) {
+        log('sad trumpet sounds');
+    }
+});
+        </pre>
+        <p>
+            And you obviously still can. The jQuery folks are good at supporting legacy code, in
+            general. However, it's obvious that the above becomes unwieldy when nested calls are
+            to be performed, for example:
+        </p>
+        <pre>
+$.ajax({
+    url: 'foo.json', 
+    success: function(data) {
+        log('time to do something awesome for: ' + data.id);
+        $.ajax({
+            url: data.id + '.json',
+            success: function(data) {
+                log('User prefers the color: ' + data.favoriteColor);
+            },
+            error: function() {
+                log('can\'t get user prefs for user #' + data.id);
+            },
+        });
+    }, 
+    error: function(data) {
+        log('sad trumpet sounds');
+    }
+});
+        </pre>
+        <p>
+            Or we could be more obtuse with a more extreme example:
+        </p>
+        <pre>
+function someAsyncCall(data, callback) {
+    data.id++;
+    window.setTimeout(function() {
+        callback(data);
+    }, 1000);
+}
+someAsyncCall({id:1}, function(data) {
+    log(data.id);
+    someAsyncCall(data, function(data) {
+        log(data.id);
+        someAsyncCall(data, function(data) {
+            log(data.id);
+            // and so on
+        });
+    });
+})
+        </pre>
+        <p>Something had to be done</p>
+
+    </body>
+</html>

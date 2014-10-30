@@ -1,0 +1,145 @@
+<html>
+    <head>
+        <title>Promises, Promises.</title>
+        <link rel="stylesheet" type="text/css" href="lib/prettify/prettify.css" />
+        <link rel="stylesheet" type="text/css" href="lib/prettify/sons-of-obsidian.css" />
+        <script type="text/javascript" src="lib/q.js"></script>
+        <script type="text/javascript" src="js/deferred.js"></script>
+        <script type="text/javascript" src="lib/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="lib/prettify/prettify.js"></script>
+        <script type="text/javascript" src="js/magic.js"></script>
+        <script type="text/javascript" src="js/toc.js"></script>
+    </head>
+    <body>
+        <ol id="toc">
+        </ol>
+        <h3>Why, continued...</h3>
+        <p>
+            There are many implementations of the promise concept. The first I ever encountered
+            was in jQuery, mainly when the ajax interfaces started to use them and then later
+            when I started to need finer control over how consumers were fed result or errors
+            from ajax queries.
+        </p>
+        <p>
+            Promises obviously help us to form easier-to-read code. Let's transform the
+            prior example, using jQuery's promise framework.
+        </p>
+        <pre>
+function someAsyncCall(data) {
+    var d = $.Deferred();
+    window.setTimeout(function() {
+        data.id++;
+        d.resolve(data);
+    }, 1000);
+    return d.promise();
+}
+someAsyncCall({id:1}).then(function(data) {
+    log(data.id);
+    return someAsyncCall(data);
+}).then(function(data) {
+    log(data.id);
+    return someAsyncCall(data);
+}).then(function(data) {
+    log('last async call: ' + data.id);
+    data.id = 12;
+    return data;
+}).then(function(data) {
+    log('last call, synchronous: ' + data.id);
+});
+        </pre>
+        <p>Which is a lot neater. Note here that I (mostly) return a new promise from within each then()
+            call (as created by <code>someAsyncCall</code>) and the asynchronicity of it all is
+            not my problem. I could also do a synchronous then handler, like the last one, where I
+            simply don't return a promise.
+        <p>You may wonder what the point is of being able to chain <code>then</code> handlers if no 
+            promises are passed back. This functionality allows us to build up a logic tree in a
+            disconnected state, such that the logic of some large operation could be decided piecemeal
+            and chained together to be run when the initial deferred object is resolved.
+        </p>
+        <p>
+           For example:
+       </p>
+       <pre>
+function step1(data) {
+    log("step 1");
+    data.steps.push(1);
+}
+function step2(data) {
+    log("step 2");
+    data.steps.push(2);
+}
+function step3(data) {
+    data.steps.push(3);
+    log("step 3, all steps: " + JSON.stringify(data.steps));
+}
+
+var d = $.Deferred();
+var promise = d.promise();
+promise.then(step1);
+if (confirm("Run step 2?")) {
+    promise.then(step2);
+}
+promise.then(step3);
+d.resolve({steps: [] });
+       </pre>
+       <p>This is an obviously contrived example, but it shows how we could use promises in a strange way.</p>
+       <p>jQuery's promises don't do any automagic error handling for you. Observe:
+       <pre>
+var d = $.Deferred();
+d.promise().then(function() {
+  throw 'whoops!';
+}).fail(function(e) {
+  log('error occurred: ' + e);
+});
+d.resolve();
+       </pre>
+       <p>If you run that, you'll see that there's an uncaught exception. We have to do some lifting ourselves:</p>
+       <pre>
+var d = $.Deferred();
+d.promise().then(function() {
+  var d = $.Deferred();
+  try {
+    throw 'whoops!';
+    d.resolve();
+  } catch (e) {
+    d.reject(e);
+  }
+  return d.promise();
+}).fail(function(e) {
+  log('error occurred: ' + e);
+}).always(function(e) {
+  log(' -- this is always called --');
+});
+d.resolve();
+       </pre>
+       <p>This isn't necessarily something <i>bad</i>. Just something to be aware of, especially when we 
+        look at other implementations</p>
+        <p>jQuery has a utility function <code>$.when</code> which can wait on multiple promises:</p>
+        <pre>
+function async1() {
+    var d = $.Deferred();
+    window.setTimeout(function() {
+        log('async1 about to resolve...');
+        d.resolve('async1');
+    }, 1000);
+    return d.promise();
+}
+function async2() {
+    var d = $.Deferred();
+    window.setTimeout(function() {
+        log('async2 about to resolve...');
+        d.resolve('async2');
+    }, 2000);
+    return d.promise();
+}
+$.when(async1(), async2()).done(function(result1, result2) {
+  log(['result1: ', result1, ' // result2: ', result2].join(''));
+});
+        </pre>
+        <p>The disadvantage with the way this is done above, vs, say, Q, is that each result is passed
+            as an argument to the resultant function. Whilst Javascript cares not one iota if your signature
+            matches the call (in other words, if the call has the &quot;correct&quot; number of arguments),
+            it does mean that you need to modify the done handler's signature in addition to any other logic
+            if you change the number of promises you're waiting on.</p>
+    </body>
+</html>

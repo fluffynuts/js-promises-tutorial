@@ -1,0 +1,163 @@
+<html>
+    <head>
+        <title>Angry Angular</title>
+        <script type="text/javascript" src="lib/angular.js"></script>
+        <link rel="stylesheet" type="text/css" href="lib/prettify/prettify.css" />
+        <link rel="stylesheet" type="text/css" href="lib/prettify/sons-of-obsidian.css" />
+        <script type="text/javascript" src="lib/q.js"></script>
+        <script type="text/javascript" src="js/deferred.js"></script>
+        <script type="text/javascript" src="lib/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="lib/prettify/prettify.js"></script>
+        <script type="text/javascript" src="js/magic.js"></script>
+        <script type="text/javascript" src="js/toc.js"></script>
+        <script type="text/javascript">
+            angular.module('angryWeather', []);
+            $(document).on('magic-complete', function() {
+                angular.bootstrap(document, ['angryWeather']);
+                return;
+                var docString = [
+                    '<div data-ng-controller="angryController">',
+                        '<div data-ng-bind="message"></div>',
+                            '<div data-ng-show="dataVisible">',
+                                '<table>',
+                                    '<tr>',
+                                        '<td>Location:</td><td><span data-ng-bind="location" /></td>',
+                                    '</tr>',
+                                    '<tr>',
+                                        '<td>Current Temperature:</td><td><span data-ng-bind="temperature" /></td>',
+                                    '</tr>',
+                                '</table>',
+                            '</div>',
+                        '<button data-ng-click="fetch()">Fetch</button>',
+                    '</div>'].join('');
+                $("div#container").get(0).innerHTML = docString;
+            });
+        </script>
+        <style>
+            div.weatherApp {
+                margin: auto;
+                width: 50%;
+                border: 2px solid skyblue;
+            }
+            div.weatherApp h4 {
+                margin-top: 2px;
+                margin-bottom: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <ol id="toc"></ol>
+        <h3>An mixed bag</h3>
+        <pre data-auto-run="true">
+angular.module('angryWeather')
+        .controller('angryController', ['$scope', '$http', '$q',
+                function(scope, http, q) {
+                    var defaultWait = 3000;
+                    scope.fetch = function() {
+                        scope.dataVisible = false;
+                        scope.fetching = true;
+                        scope.temperature = 'N/A';
+                        scope.artificialWait().then(function() {
+                            return scope.fetchWeatherFor('Durban');
+                        }).then(function() {
+                            return scope.artificialWaitJ();
+                        }).then(function() {
+                            return scope.fetchWeatherFor('Johannesburg');
+                        }).then(function() {
+                            return scope.artificialWaitQ()
+                        }).then(function() {
+                            return scope.fetchWeatherFor('Cape Town');
+                        }).then(function() {
+                            return scope.artificialWaitCustom();
+                        }).then(function() {
+                            return scope.fetchWeatherFor('Pietermaritzburg');
+                        }).then(function() {
+                            scope.setMessage('All done');
+                            scope.fetching = false;
+                        });
+                    };
+                    scope.scrollToBottom = function() {
+                        window.setTimeout(function() {
+                            $(document).scrollTop($(document).height() - window.innerHeight);
+                        }, 200);
+                    };
+                    scope.setMessage = function(message) {
+                        scope.message = message;
+                        scope.scrollToBottom();
+                    };
+                    scope.fetchWeatherFor = function(where) {
+                        scope.setMessage('Fetching weather for ' + where + '...');
+                        var url = ['http://api.openweathermap.org/data/2.5/weather?q=',
+                                    where, '&units=metric'].join('');
+                        return http.get(url).then(function(result) {
+                            var data = result.data;
+                            scope.dataVisible = true;
+                            scope.temperature = data.main.temp;
+                            scope.location = data.name;
+                            scope.scrollToBottom();
+                        }).catch(function(err) {
+                            scope.setMessage('Error retrieving weather for: ' + where);
+                        });
+                    };
+                    scope.setArtificialWaitMessage = function(src) {
+                        scope.setMessage('Artificial wait with deference from: ' + src);
+                    };
+                    scope.artificialWait = function(howLong) {
+                        scope.setArtificialWaitMessage('Angular/$q');
+                        var d = q.defer();
+                        window.setTimeout(function() {
+                            d.resolve();
+                        }, howLong || defaultWait);
+                        return d.promise;
+                    };
+                    scope.artificialWaitJ = function(howLong) {
+                        scope.setArtificialWaitMessage('jQuery/$.Deferred');
+                        var d = $.Deferred();
+                        window.setTimeout(function() {
+                            d.resolve();
+                        }, howLong || defaultWait);
+                        return d.promise();
+                    };
+                    scope.artificialWaitQ = function(howLong) {
+                        scope.setArtificialWaitMessage('Q');
+                        var d = Q.defer();
+                        window.setTimeout(function() {
+                            d.resolve();
+                        }, howLong || defaultWait);
+                        return d.promise;
+                    };
+                    scope.artificialWaitCustom = function(howLong) {
+                        scope.setArtificialWaitMessage('Hand-rolled deference library');
+                        var d = new Deferred();
+                        window.setTimeout(function() {
+                            d.resolve();
+                        }, howLong || defaultWait);
+                        return d.promise();
+                    };
+        }]);
+        </pre>
+        <div class="weatherApp">
+            <h4>Weather app example</h4>
+            <div data-ng-controller="angryController">
+                    <button data-ng-click="fetch()" data-ng-disabled="fetching">Fetch</button>
+                    <div data-ng-bind="message"></div>
+                        <div class="weatherTarget">
+                            <div data-ng-show="dataVisible">
+                                <table>
+                                    <tr>
+                                        <td>Location:</td><td><span data-ng-bind="location" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Current Temperature:</td><td><span data-ng-bind="temperature" /></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+        <p>What's going on here? It seems as if Q and jQuery have decided to approach the potential
+            problem with a similar tack: duck-typing the result of a <code>then</code> call to decide
+            whether to continue asynchronously or just call the next animal in the chain.</p>
+    </body>
+</html>

@@ -1,0 +1,111 @@
+<html>
+    <head>
+        <title>Promises, Promises.</title>
+        <link rel="stylesheet" type="text/css" href="lib/prettify/prettify.css" />
+        <link rel="stylesheet" type="text/css" href="lib/prettify/sons-of-obsidian.css" />
+        <script type="text/javascript" src="lib/q.js"></script>
+        <script type="text/javascript" src="js/deferred.js"></script>
+        <script type="text/javascript" src="lib/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="lib/prettify/prettify.js"></script>
+        <script type="text/javascript" src="js/magic.js"></script>
+        <script type="text/javascript" src="js/toc.js"></script>
+    </head>
+    <body>
+        <ol id="toc"></ol>
+        <h3>Play it again, Q</h3>
+        <p>Q is another (quite popular) promises framework which has the main advantage of not
+            requiring the whole of jQuery to be imported. If that's a problem, of course, or perhaps
+            if you're dealing with NodeJS server-side code where all of the DOM stuff from jQuery
+            would be a waste of time</p>
+        <pre>
+var showFailure = confirm('Should I run the failure course?');
+function someAsyncCall(data) {
+    var d = Q.defer();
+    window.setTimeout(function() {
+        data.id++;
+        if (showFailure && data.id > 3) {
+          d.reject('rejected');
+        } else {
+          d.resolve(data);
+        }
+    }, 1000);
+    return d.promise;
+}
+someAsyncCall({id:1}).then(function(data) {
+    console.log(data.id);
+    return someAsyncCall(data);
+}).then(function(data) {
+    console.log(data.id);
+    return someAsyncCall(data);
+}).then(function(data) {
+    console.log('last async call: ' + data.id);
+    data.id = 12;
+    return data;
+}).then(function(data) {
+    console.log('last call, synchronous: ' + data.id);
+}).then(function(data) {
+  if (data === undefined) {
+    throw 'bailing out due to exception';
+  }
+}).catch(function(data) {
+  log('failed: ' + data);
+}).finally(function(data) {
+  log(' -- always called --');
+});
+
+        </pre>
+      <p>
+      There are some fundamental differences between using Q and jQuery:
+      <ol>
+        <li>You call on Q.defer() where you would have called on $.Deferred()</li>
+        <li>The promise on the Q deferred object is a property, where jQuery expects you to call
+            the promise() function on the deferred object to get to the promise. This inherintly
+            means that jQuery's deferred object is a little more tamper-proof.</li>
+        <li>The <code>catch</code> handler is called if one of your chained promises throws an exception,
+            unlike with jQuery. Also, <code>catch</code> has an alias: <code>fail</code> (though my experiments
+            show you can only use one and the first one you use wins). In the case of the
+            minimal implementation of Q within Angular, this is important: there is no <code>fail</code>
+            alias. So just forget it's there...</li>
+        <li>The <code>always</code> handler we've seen with jQuery is called <code>finally</code> in Q.
+          There is no convenience <code>always</code> alias.</li>
+      </ol>
+      </p>
+      <p>Interesting 'gotcha': when you're using the <code>$http</code> service in Angular, you can
+          quite easily fall into a jQuery-like habit of doing:
+<pre data-no-run="true">
+  $http.get('url/to/get', someConfigObject)
+    .then(function(resultFromServer) {
+      // impress the user with some data transformation
+    }).fail(function() {
+      // tell the user a sad story
+    });
+</pre>
+  <p>Which is fine. The $http methods return a Q promise object with those extra functions attached. It's still 
+      a Q promise though, so try to bear that in mind, even though it's been dressed up as a jQuery promise.</p>
+  <p>Q can also perform multiple async operations with one collecting function:</p>
+  <pre>
+function async1() {
+    var d = Q.defer();
+    window.setTimeout(function() {
+        log('about to resolve async1...');
+        d.resolve('async1');
+    }, 1000);
+    return d.promise;
+}
+function async2() {
+    var d = Q.defer();
+    window.setTimeout(function() {
+        log('about to resolve async2...');
+        d.resolve('async2');
+    }, 2000);
+    return d.promise;
+}
+Q.all([async1(), async2()]).then(function(data) {
+    log('final resolution with: ' + JSON.stringify(data))
+});
+  </pre>
+  <p>Here we see that Q prefers to pass all the data in an array to your final handler. Of course this means that
+      it's slightly less work than jQuery's <code>$.when</code> to add some more promises to resolve in the mix,
+      <i>provided you're adding them at the end of the chain, of course!</i>.
+    </body>
+</html>
