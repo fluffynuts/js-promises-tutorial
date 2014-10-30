@@ -35,6 +35,7 @@
                 prettyPrint();
                 $(document).trigger('magic-complete');
             });
+            var consoleHeight = "250px";
             function zeroPad(str, places) {
               str = str + "";
               places = places || 2;
@@ -52,18 +53,21 @@
               result.css("display", "inline-block");
               return result;
             }
-            window.log = function(str) { 
-              var fakeConsole = $("div#console");
-              var consoleHeight = "250px";
-              if (fakeConsole.length === 0) {
-                var wrapper = $("<div></div>");
-                var header = $("<div></div>");
-                header.text("[Console output]");
-                header.css({
-                  background: "#444",
-                  height: "25px;"
+            function createCloseButton() {
+                var closeButton = $("<button></button>");
+                closeButton.text("X");
+                closeButton.attr("title", "Close");
+                closeButton.css({
+                    position: "absolute",
+                    right: "0px"
                 });
-                wrapper.append(header);
+                closeButton.on("click", function() {
+                    $("div#consoleWrapper").remove();
+                });
+                return closeButton;
+            }
+            function createFakeConsoleWrapper() {
+                var wrapper = $("<div></div>");
                 wrapper.attr("id", "consoleWrapper");
                 wrapper.css({
                   width: "99%",
@@ -76,12 +80,33 @@
                   zIndex: "9999",
                   borderTop: "5px solid white",
                 });
-                fakeConsole = $("<div></div>");
+                return wrapper;
+            }
+            function createFakeConsoleHeader() {
+                var header = $("<div></div>");
+                header.text("[Console output]");
+                header.css({
+                  background: "#444",
+                  height: "25px;"
+                });
+                header.append(createCloseButton);
+                return header;
+            }
+            function createFakeConsole() {
+                var fakeConsole = $("<div></div>");
                 fakeConsole.attr("id", "console");
                 fakeConsole.css({
                   overflow: "scroll",
                   height: "225px"
                 });
+                return fakeConsole;
+            }
+            window.log = function(str) { 
+              var fakeConsole = $("div#console");
+              if (fakeConsole.length === 0) {
+                var wrapper = createFakeConsoleWrapper();
+                wrapper.append(createFakeConsoleHeader());
+                fakeConsole = createFakeConsole();
                 wrapper.append(fakeConsole);
                 $("body").append(wrapper);
                 var padder = $("<div></div>");
