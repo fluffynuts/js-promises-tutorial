@@ -1,40 +1,35 @@
 (function() {
-        function convertCodeBlocks() {
-            var idx = 0;
-            $('pre').each(function() {
-                $(this).addClass('prettyprint');
-                $(this).addClass('linenums');
-                if ($(this).attr('data-no-run') === "true") {
-                  return;
-                }
-                var scriptText = $(this).text();
-                var scriptBlock = $('<scr' + 'ipt></scr' + 'ipt>');
-                scriptBlock.attr('type', 'text/javascript');
-                scriptText = 'function auto_' + idx + '() {\ntry { \ntry { clearLogs(); } catch (e) {console.log(e);}\n' + scriptText + '\n} catch (e) { log(\'Uncaught exception: \' + e); }}';
-                scriptBlock.text(scriptText);
-                $(this).after(scriptBlock);
-                if ($(this).attr("data-auto-run") === "true") {
-                    eval('auto_' + idx + '();');
+            function convertCodeBlocks() {
+                var idx = 0;
+                $('pre').each(function() {
+                    $(this).addClass('prettyprint');
+                    $(this).addClass('linenums');
+                    if ($(this).attr('data-no-run') === "true") {
                     return;
-                }
-                var p = $('<p></p>');
-                p.css('text-align', 'right');
-                var runButton = $('<button></button>');
-                runButton.text('Run it');
-                p.append(runButton);
-                var toRun = 'auto_' + idx + '();';
-                runButton.on('click', function() {
-                    eval(toRun);
+                    }
+                    var scriptText = $(this).text();
+                    var scriptBlock = $('<scr' + 'ipt></scr' + 'ipt>');
+                    scriptBlock.attr('type', 'text/javascript');
+                    scriptText = 'function auto_' + idx + '() {\ntry { \ntry { clearLogs(); } catch (e) {console.log(e);}\n' + scriptText + '\n} catch (e) { log(\'Uncaught exception: \' + e); }}';
+                    scriptBlock.text(scriptText);
+                    $(this).after(scriptBlock);
+                    if ($(this).attr("data-auto-run") === "true") {
+                        eval('auto_' + idx + '();');
+                        return;
+                    }
+                    var p = $('<p></p>');
+                    p.css('text-align', 'right');
+                    var runButton = $('<button></button>');
+                    runButton.text('Run example...');
+                    p.append(runButton);
+                    var toRun = 'auto_' + idx + '();';
+                    runButton.on('click', function() {
+                        eval(toRun);
+                    });
+                    $(this).after(p);
+                    idx++;
                 });
-                $(this).after(p);
-                idx++;
-            });
             }
-            $(document).ready(function() {
-                convertCodeBlocks();
-                prettyPrint();
-                $(document).trigger('magic-complete');
-            });
             var consoleHeight = "250px";
             function zeroPad(str, places) {
               str = str + "";
@@ -132,5 +127,17 @@
                 fakeConsole.children().remove();
               }
             };
-            window.convertCodeBlocks = convertCodeBlocks;
+            function addStyle() {
+                var link = $("<link></link>");
+                link.attr("type", "text/css");
+                link.attr("rel", "stylesheet");
+                link.attr("href", "css/site.css");
+                $("head").append(link);
+            }
+            $(document).ready(function() {
+                addStyle();
+                convertCodeBlocks();
+                prettyPrint();
+                $(document).trigger('magic-complete');
+            });
 })();
