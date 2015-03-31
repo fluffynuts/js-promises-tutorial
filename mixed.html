@@ -72,6 +72,8 @@ angular.module('angryWeather')
                         }).then(function() {
                             return scope.fetchWeatherFor('Pietermaritzburg');
                         }).then(function() {
+                            return scope.artificialWaitNative();
+                        }).then(function() {
                             scope.setMessage('All done');
                             scope.fetching = false;
                         });
@@ -133,6 +135,15 @@ angular.module('angryWeather')
                             d.resolve();
                         }, howLong || defaultWait);
                         return d.promise();
+                    };
+                    scope.artificialWaitNative = function(howLong) {
+                        scope.setArtificialWaitMessage('Native Promise library (or polyfill)');
+                        var promise = new Promise(function(resolve, reject) {
+                            window.setTimeout(function() {
+                                resolve();
+                            }, howLong || defaultWait);
+                        });
+                        return promise;
                     };
         }]);
         </pre>

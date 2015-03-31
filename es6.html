@@ -1,0 +1,62 @@
+<html>
+    <head>
+        <title>Promises, Promises.</title>
+        <link rel="stylesheet" type="text/css" href="lib/prettify/prettify.css" />
+        <link rel="stylesheet" type="text/css" href="lib/prettify/sons-of-obsidian.css" />
+        <script type="text/javascript" src="lib/q.js"></script>
+        <script type="text/javascript" src="js/deferred.js"></script>
+        <script type="text/javascript" src="lib/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="lib/prettify/prettify.js"></script>
+        <script type="text/javascript" src="js/magic.js"></script>
+        <script type="text/javascript" src="js/toc.js"></script>
+            <script type="text/javascript" src="lib/promise-6.1.0.min.js"></script>
+    </head>
+    <body>
+        <ol id="toc"></ol>
+        <h3>Going Native</h3>
+        <p>The ES6 standard has also made provision for promises, so a modern browser (Chrome 32+, Firefox 29+,
+            Opera 19+, Safari 7.1+, but of course, not IE at time of writing) has this language feature by default.
+            There's also a polyfill here: <a href="https://www.promisejs.org/polyfills/promise-6.1.0.min.js">https://www.promisejs.org/polyfills/promise-6.1.0.min.js</a>
+            so you can get support in unsupportive browsers</p>
+        <p>The ES6 implementation of promisise is prototypical. The constructor takes a function which
+            is given two callback
+            functions, <code>resolve</code> and <code>reject</code> which you can use to resolve or
+            reject the Promise. Unfortunately, there's no <code>finally</code> or <code>done</code>
+            available on this promise, so you'll have to repeat yourself a little to have code <i>always</i>
+            executed when the chain completes or fails.</p>
+        <p>A neat feature, however, is the static function <code>Promise.race(<i>promises</i>)</code> which returns
+            a new promise which resolves or rejects based on the result of the first given promise to do so, which
+            may come in handy when you want to just get the first result from a quorum who are equally useful,
+            information-wise.</p>
+
+        <p>Usage example:</p>
+<pre>
+function someAsyncCall(data) {
+    var promise = new Promise(function(resolve, reject) {
+        window.setTimeout(function() {
+            data.id++;
+            resolve(data);
+        }, 1000);
+    });
+    return promise;
+}
+someAsyncCall({id:1}).then(function(data) {
+    log(data.id);
+    return someAsyncCall(data);
+}).then(function(data) {
+    log(data.id);
+    return someAsyncCall(data);
+}).then(function(data) {
+    log('last async call: ' + data.id);
+    data.id = 12;
+    return data;
+}).then(function(data) {
+    log('last call, synchronous: ' + data.id);
+});
+
+</pre>
+
+    </body>
+</html>
+
+

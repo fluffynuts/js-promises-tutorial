@@ -13,6 +13,7 @@
             ["How, part 1, with $: getting started", "jquery_getting_started.html"],
             ["How, part 2, with $: Handling rejection", "jquery_rejection.html"],
             ["Play it again, Q", "q.html"],
+            ["Going Native", "es6.html"],
             ["Understanding through implementation", "custom.html"],
             ["Picky, Picky", "picky.html"],
             ["A mixed bag", "mixed.html"],
